@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+python-multipart
+tensorflow-cpu   # Use -cpu version to keep it lightweight for free tier
+pillow
+numpy
