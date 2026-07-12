@@ -1,21 +1,17 @@
-# Use a lightweight Python version
-FROM python:3.9-slim
+# Lightweight Python base
+FROM python:3.10-slim
 
-# Set the working directory inside the container
 WORKDIR /code
 
-# Copy the requirements file first (for caching)
+# Install dependencies first for better layer caching
 COPY ./requirements.txt /code/requirements.txt
-
-# Install dependencies
-# We use --no-cache-dir to keep the image small
 RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
-# Copy the rest of your backend code and the model
+# Copy backend code + model
+# IMPORTANT: crop_disease_model.h5 must be placed in this folder before building/deploying
 COPY . .
 
-# Set permissions (required for Hugging Face)
 RUN chmod -R 777 /code
 
-# Start the server on port 7860 (Hugging Face default)
+# Hugging Face Spaces expects port 7860
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "7860"]
