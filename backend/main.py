@@ -94,7 +94,7 @@ async def predict(file: UploadFile = File(...)):
 
     try:
         image = image.resize(IMAGE_SIZE)
-        img_array = np.array(image) / 255.0
+        img_array = np.array(image)  # NOTE: no /255 rescaling — training pipeline used raw 0-255 pixel values
         image_batch = np.expand_dims(img_array, 0)
 
         predictions = MODEL.predict(image_batch, verbose=0)
