@@ -16,32 +16,33 @@ Users can upload a plant-leaf image and receive a predicted disease class, confi
 - 🐳 Includes a Dockerfile for the backend
 - 🌍 Supports configurable CORS origins through environment variables
 
-## 🏗️ Architecture
+## 🏗️ System Architecture
 
-```text
-                ┌─────────────────────┐
-                │   React + Vite UI   │
-                │      Frontend       │
-                └──────────┬──────────┘
-                           │ HTTP
-                           ▼
-                ┌─────────────────────┐
-                │     FastAPI API     │
-                │     /predict        │
-                └──────────┬──────────┘
-                           │
-                           ▼
-                ┌─────────────────────┐
-                │ TensorFlow / Keras  │
-                │   CNN Classifier    │
-                └──────────┬──────────┘
-                           │
-                           ▼
-                ┌─────────────────────┐
-                │ Disease + Confidence│
-                │       + Top-3       │
-                └─────────────────────┘
+```mermaid
+flowchart LR
+    A[User] --> B[React + Vite Frontend]
+    B -->|multipart image| C[FastAPI /predict]
+    C --> D[Image Validation + Preprocessing]
+    D --> E[TensorFlow / Keras CNN]
+    E --> F[38-Class Prediction]
+    F --> G[Confidence + Top-3 Results]
+    G --> B
 ```
+
+## 🚀 Deployment Flow
+
+```mermaid
+flowchart LR
+    A[Developer] -->|git push| B[GitHub]
+    B --> C[CI / Tests]
+    C -->|pass| D[Docker Build]
+    D --> E[Container Registry]
+    E --> F[Cloud / Container Host]
+    F --> G[FastAPI Inference API]
+    G --> H[React Frontend]
+```
+
+> The deployment flow describes the intended production path. The repository currently provides a containerized backend; a live production deployment should only be claimed after it is actually deployed and verified.
 
 ## 🛠️ Tech Stack
 
@@ -157,22 +158,21 @@ docker run -p 7860:7860 fasalsathi-api
 
 The inference code intentionally does **not** divide image pixels by 255 because the current training pipeline expects raw 0–255 pixel values. If the training preprocessing is changed, the inference preprocessing must be changed consistently as well.
 
-## 🔐 Production Improvements
+## 🔐 Production Checklist
 
-For a production deployment, the next priorities are:
-
-- Pin and verify the model artifact using a release or artifact store
-- Restrict `ALLOWED_ORIGINS` to the deployed frontend domain
-- Add automated API tests
-- Add model/version metadata to prediction responses
-- Add monitoring and structured request metrics
-- Add image/model validation and stronger rate limiting
-- Move large model artifacts to dedicated object storage when appropriate
-- Add CI/CD for frontend and backend
+- [ ] Pin and verify the model artifact using a release or artifact store
+- [ ] Restrict `ALLOWED_ORIGINS` to the deployed frontend domain
+- [ ] Add automated API tests
+- [ ] Add model/version metadata to prediction responses
+- [ ] Add monitoring and structured request metrics
+- [ ] Add stronger image validation and rate limiting
+- [ ] Move large model artifacts to dedicated object storage when appropriate
+- [ ] Add CI/CD for frontend and backend
+- [ ] Deploy and verify a live frontend + API environment
 
 ## 📌 Current Status
 
-The repository contains a real full-stack inference architecture, but some product-level features described in earlier versions of the documentation should be treated as roadmap items unless their implementation is present in the current source tree.
+The repository contains a real full-stack inference architecture with a containerized FastAPI backend. Production deployment, automated CI/CD, and additional operational hardening remain roadmap items.
 
 ## Author
 
