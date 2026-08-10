@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useLanguage } from '../context/LanguageContext';
 
-// 1. Hindi Translation Dictionary for Disease Names
 const HINDI_DISEASE_NAMES = {
   'Apple___Apple_scab': "सेब - पपड़ी रोग (Apple Scab)",
   'Apple___Black_rot': "सेब - काला सड़न (Black Rot)",
@@ -45,15 +44,15 @@ const HINDI_DISEASE_NAMES = {
 };
 
 const DiseaseDetector = ({ onBack }) => {
-  const { t, language } = useLanguage(); // Get language state
-  
+  const { t, language } = useLanguage();
   const [selectedFile, setSelectedFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // Uses VITE_API_URL from .env in production, falls back to localhost for local dev
-  const API_URL = `${import.meta.env.VITE_API_URL || "http://127.0.0.1:8000"}/predict`;
+  // Production fallback keeps the deployed frontend functional even if Vercel's
+  // VITE_API_URL variable has not been configured yet.
+  const API_URL = `${import.meta.env.VITE_API_URL || "https://crop-disease-ai-l5td.onrender.com"}/predict`;
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
@@ -84,70 +83,37 @@ const DiseaseDetector = ({ onBack }) => {
     }
   };
 
-  // Helper: Returns Hindi name if language is 'hi', otherwise returns formatted English name
   const getDiseaseName = (rawName) => {
-    if (language === 'hi' && HINDI_DISEASE_NAMES[rawName]) {
-      return HINDI_DISEASE_NAMES[rawName];
-    }
-    // Default English formatting (removes underscores)
+    if (language === 'hi' && HINDI_DISEASE_NAMES[rawName]) return HINDI_DISEASE_NAMES[rawName];
     return rawName.replace(/___/g, " - ").replace(/_/g, " ");
   };
 
   return (
     <div className="detector-page-container">
       <button className="back-btn" onClick={onBack}>{t.backHome}</button>
-      
       <div className="detector-section">
         <div className="section-header">
           <h2>{t.detTitle}</h2>
           <p>{t.detSubtitle}</p>
         </div>
-
         <div className="detector-card">
           <div className="upload-area">
-            <input 
-              type="file" 
-              id="file-upload" 
-              className="file-input" 
-              onChange={handleFileChange} 
-              accept="image/*" 
-            />
+            <input type="file" id="file-upload" className="file-input" onChange={handleFileChange} accept="image/*" />
             <label htmlFor="file-upload" className="upload-label">
-              {preview ? (
-                <img src={preview} alt="Preview" className="preview-img" />
-              ) : (
-                <div className="upload-placeholder">
-                  <span className="icon">📷</span>
-                  <span>{t.uploadText}</span>
-                </div>
-              )}
+              {preview ? <img src={preview} alt="Preview" className="preview-img" /> : <div className="upload-placeholder"><span className="icon">📷</span><span>{t.uploadText}</span></div>}
             </label>
           </div>
-
-          {selectedFile && (
-            <button className="analyze-btn" onClick={handleUpload} disabled={loading}>
-              {loading ? t.analyzing : t.analyzeBtn}
-            </button>
-          )}
-
+          {selectedFile && <button className="analyze-btn" onClick={handleUpload} disabled={loading}>{loading ? t.analyzing : t.analyzeBtn}</button>}
           {result && (
             <div className="result-box">
               <div className="result-header">
-                {/* 2. UPDATED DISPLAY LOGIC */}
                 <h3>{getDiseaseName(result.class)}</h3>
-                
                 <span className="confidence">{(result.confidence * 100).toFixed(1)}% Match</span>
               </div>
-              {result.low_confidence && (
-                <p className="low-confidence-warning" style={{ color: "#b45309", fontSize: "0.9rem", margin: "0.5rem 0" }}>
-                  ⚠️ Model is not fully sure about this. Consider retaking the photo in better light, or consult a local expert.
-                </p>
-              )}
+              {result.low_confidence && <p className="low-confidence-warning" style={{ color: "#b45309", fontSize: "0.9rem", margin: "0.5rem 0" }}>⚠️ Model is not fully sure about this. Consider retaking the photo in better light, or consult a local expert.</p>}
               <div className="cure-panel">
                 <h4>{t.cureLabel}</h4>
-                <p>
-                  {t.cures[result.class] || "Please consult a local agricultural expert."}
-                </p>
+                <p>{t.cures[result.class] || "Please consult a local agricultural expert."}</p>
               </div>
             </div>
           )}
